@@ -8,11 +8,19 @@ import (
 
 func (m *model) ResetDns() error {
 
+	cmdRestore := exec.Command("sudo", "mv", "/etc/resolv.conf.backup", "/etc/resolv.conf")
+	if err := cmdRestore.Run(); err != nil {
+		return fmt.Errorf("failed to restore /etc/resolv.conf: %v", err)
+	}
+
+	fmt.Println("DNS settings restored from backup.")
+	return nil
+
 	// if m.osName == "windows" {
 
 	// } else if m.osName == "linux" {
 
-	return setDNSLinux([]string{"8.8.8.8", "8.8.4.4"})
+	// return setDNSLinux([]string{"8.8.8.8", "8.8.4.4"})
 
 	// } else if m.osName == "darwin" {
 	// fmt.Printf("This is an unknown operating system: %s\n", m.osName)
@@ -37,6 +45,11 @@ func (m *model) SetDns(dnsName string) error {
 }
 
 func setDNSLinux(dnsServers []string) error {
+
+	cmdBackup := exec.Command("sudo", "cp", "/etc/resolv.conf", "/etc/resolv.conf.backup")
+	if err := cmdBackup.Run(); err != nil {
+		return fmt.Errorf("failed to backup /etc/resolv.conf: %v", err)
+	}
 
 	resolvConfContent := "nameserver " + strings.Join(dnsServers, "\nnameserver ") + "\n"
 
